@@ -157,6 +157,25 @@ A professional full-stack application for managing admin users and guest account
 
 ### Guest Users
 - `POST /api/guest-users` - Create guest user
+
+**Request Body:**
+```json
+{
+  "baseUsername": "johndoe",
+  "password": "guestPass123!",
+  "expiration": {
+    "months": 0,
+    "days": 14,
+    "hours": 0,
+    "minutes": 0,
+    "seconds": 0
+  },
+  "fullName": "John Doe",
+  "email": "johndoe@example.com",
+  "phoneNumber": "+1234567890"
+}
+```
+
 - `GET /api/guest-users` - Get all guest users
 - `PUT /api/guest-users/:id` - Update guest user
 - `DELETE /api/guest-users/:id` - Delete guest user

@@ -21,7 +21,7 @@ const generatePassword = () => {
 
 export const createGuestUser = async (req, res) => {
   try {
-    const { baseUsername, password, expirationDays, fullName, email, phoneNumber } = req.body;
+    const { baseUsername, password, expiration, fullName, email, phoneNumber } = req.body;
     const adminId = req.admin.id;
     const adminEmail = req.admin.email;
 
@@ -60,9 +60,43 @@ export const createGuestUser = async (req, res) => {
     const saltRounds = 12;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    // Calculate expiration date
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + expirationDays);
+    // Validate expiration object
+    if (!expiration || typeof expiration !== 'object') {
+      return res.status(400).json({
+        success: false,
+        message: 'Expiration object is required.'
+      });
+    }
+    const validUnits = ['months', 'days', 'hours', 'minutes', 'seconds'];
+    let hasPositive = false;
+    for (const unit of validUnits) {
+      const val = Number(expiration[unit] || 0);
+      if (!Number.isInteger(val) || val < 0) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid expiration: ${unit} must be a non-negative integer.`
+        });
+      }
+      if (val > 0) hasPositive = true;
+    }
+    if (!hasPositive) {
+      return res.status(400).json({
+        success: false,
+        message: 'Expiration must have at least one non-zero value.'
+      });
+    }
+
+    // Calculate expiration date from expiration object
+    const addExpiration = (date, exp) => {
+      let d = new Date(date);
+      if (exp.months) d.setMonth(d.getMonth() + Number(exp.months));
+      if (exp.days) d.setDate(d.getDate() + Number(exp.days));
+      if (exp.hours) d.setHours(d.getHours() + Number(exp.hours));
+      if (exp.minutes) d.setMinutes(d.getMinutes() + Number(exp.minutes));
+      if (exp.seconds) d.setSeconds(d.getSeconds() + Number(exp.seconds));
+      return d;
+    };
+    const expiresAt = addExpiration(new Date(), expiration || {});
 
     // Create guest user with new fields
     const result = await executeQuery(
@@ -150,7 +184,7 @@ export const getGuestUsers = async (req, res) => {
 export const updateGuestUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { isActive, expiresAt } = req.body;
+    const { isActive, expiresAt, expiration } = req.body;
     const adminId = req.admin.id;
 
     // Verify user belongs to this admin
@@ -182,9 +216,44 @@ export const updateGuestUser = async (req, res) => {
       values.push(isActive);
     }
 
-    if (expiresAt) {
+    let newExpiresAt = null;
+    if (expiration) {
+      // Validate expiration object
+      const validUnits = ['months', 'days', 'hours', 'minutes', 'seconds'];
+      let hasPositive = false;
+      for (const unit of validUnits) {
+        const val = Number(expiration[unit] || 0);
+        if (!Number.isInteger(val) || val < 0) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid expiration: ${unit} must be a non-negative integer.`
+          });
+        }
+        if (val > 0) hasPositive = true;
+      }
+      if (!hasPositive) {
+        return res.status(400).json({
+          success: false,
+          message: 'Expiration must have at least one non-zero value.'
+        });
+      }
+      // Calculate new expiresAt
+      const addExpiration = (date, exp) => {
+        let d = new Date(date);
+        if (exp.months) d.setMonth(d.getMonth() + Number(exp.months));
+        if (exp.days) d.setDate(d.getDate() + Number(exp.days));
+        if (exp.hours) d.setHours(d.getHours() + Number(exp.hours));
+        if (exp.minutes) d.setMinutes(d.getMinutes() + Number(exp.minutes));
+        if (exp.seconds) d.setSeconds(d.getSeconds() + Number(exp.seconds));
+        return d;
+      };
+      newExpiresAt = addExpiration(new Date(), expiration);
+    } else if (expiresAt) {
+      newExpiresAt = new Date(expiresAt);
+    }
+    if (newExpiresAt) {
       updates.push('expires_at = ?');
-      values.push(new Date(expiresAt));
+      values.push(newExpiresAt);
     }
 
     if (updates.length === 0) {
@@ -293,6 +362,13 @@ export const toggleGuestUserStatus = async (req, res) => {
       'SELECT is_active FROM guest_users WHERE id = ? AND created_by = ?',
       [id, adminId]
     );
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: userData.email, // <-- This should be the guest user's email
+      subject: 'Your Guest Access Credentials',
+      html: `...`
+    };
 
     if (!userResult.success) {
       return res.status(500).json({

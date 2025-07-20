@@ -8,7 +8,8 @@ const UserForm = ({ onCreateUser, adminEmail }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [baseUsername, setBaseUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [expirationDays, setExpirationDays] = useState(14);
+  // Expiration state for each unit
+  const [expiration, setExpiration] = useState({ months: 0, days: 14, hours: 0, minutes: 0, seconds: 0 });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -26,7 +27,7 @@ const UserForm = ({ onCreateUser, adminEmail }) => {
     const result = await onCreateUser(
       baseUsername.trim(), 
       password.trim(), 
-      expirationDays, 
+      expiration, // send the expiration object
       adminEmail,
       fullName.trim(),
       email.trim(),
@@ -41,7 +42,7 @@ const UserForm = ({ onCreateUser, adminEmail }) => {
         setPhoneNumber('');
         setBaseUsername('');
         setPassword('');
-        setExpirationDays(14);
+        setExpiration({ months: 0, days: 14, hours: 0, minutes: 0, seconds: 0 });
         setIsSubmitting(false);
       }, 500);
     } else {
@@ -56,14 +57,6 @@ const UserForm = ({ onCreateUser, adminEmail }) => {
     }
     return adminEmail.split('@')[1].split('.')[0];
   };
-
-  const expirationOptions = [
-    { value: 7, label: '1 Week' },
-    { value: 14, label: '2 Weeks (Default)' },
-    { value: 30, label: '1 Month' },
-    { value: 60, label: '2 Months' },
-    { value: 90, label: '3 Months' }
-  ];
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-8">
@@ -151,7 +144,7 @@ const UserForm = ({ onCreateUser, adminEmail }) => {
               value={baseUsername}
               onChange={(e) => setBaseUsername(e.target.value)}
               className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-              placeholder="john.doe"
+              placeholder="joseph mukama"
               required
             />
             {baseUsername && (
@@ -197,22 +190,57 @@ const UserForm = ({ onCreateUser, adminEmail }) => {
             <Calendar className="w-4 h-4 inline mr-2" />
             Expiration Period
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-            {expirationOptions.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => setExpirationDays(option.value)}
-                className={`p-4 rounded-lg border-2 transition-all duration-200 text-center ${
-                  expirationDays === option.value
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-                    : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-500'
-                }`}
-              >
-                <p className="text-sm font-semibold">{option.label}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{option.value} days</p>
-              </button>
-            ))}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div>
+              <label className="block text-xs mb-1">Months</label>
+              <input
+                type="number"
+                min="0"
+                value={expiration.months}
+                onChange={e => setExpiration(exp => ({ ...exp, months: Number(e.target.value) }))}
+                className="w-full px-2 py-2 rounded border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-xs mb-1">Days</label>
+              <input
+                type="number"
+                min="0"
+                value={expiration.days}
+                onChange={e => setExpiration(exp => ({ ...exp, days: Number(e.target.value) }))}
+                className="w-full px-2 py-2 rounded border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-xs mb-1">Hours</label>
+              <input
+                type="number"
+                min="0"
+                value={expiration.hours}
+                onChange={e => setExpiration(exp => ({ ...exp, hours: Number(e.target.value) }))}
+                className="w-full px-2 py-2 rounded border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-xs mb-1">Minutes</label>
+              <input
+                type="number"
+                min="0"
+                value={expiration.minutes}
+                onChange={e => setExpiration(exp => ({ ...exp, minutes: Number(e.target.value) }))}
+                className="w-full px-2 py-2 rounded border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-xs mb-1">Seconds</label>
+              <input
+                type="number"
+                min="0"
+                value={expiration.seconds}
+                onChange={e => setExpiration(exp => ({ ...exp, seconds: Number(e.target.value) }))}
+                className="w-full px-2 py-2 rounded border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white"
+              />
+            </div>
           </div>
         </div>
 

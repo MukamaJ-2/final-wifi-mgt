@@ -28,12 +28,12 @@ export const useGuestUsers = () => {
   }, []);
 
   // Create guest user
-  const createUser = async (baseUsername, password, expirationDays, adminEmail, fullName, email, phoneNumber) => {
+  const createUser = async (baseUsername, password, expiration, adminEmail, fullName, email, phoneNumber) => {
     try {
       const response = await api.post(endpoints.guestUsers.create, {
         baseUsername,
         password,
-        expirationDays,
+        expiration, // send the expiration object
         fullName,
         email,
         phoneNumber
@@ -104,16 +104,15 @@ export const useGuestUsers = () => {
   };
 
   // Update user expiration
-  const updateUserExpiration = async (userId, newExpirationDate) => {
+  const updateUserExpiration = async (userId, expiration) => {
     try {
       const response = await api.put(endpoints.guestUsers.update(userId), {
-        expiresAt: newExpirationDate.toISOString()
+        expiration // send the expiration object
       });
-      
       if (response.data.success) {
         setUsers(prev => prev.map(user => 
           user.id === userId 
-            ? { ...user, expires_at: newExpirationDate.toISOString() }
+            ? { ...user, expires_at: response.data.data.user.expires_at }
             : user
         ));
         return { success: true };

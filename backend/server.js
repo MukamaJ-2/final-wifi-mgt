@@ -13,7 +13,7 @@ import guestUserRoutes from './routes/guestUsers.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 // Security middleware
 app.use(helmet({
@@ -92,30 +92,7 @@ const startServer = async () => {
 
     app.listen(PORT, () => {
       console.log(`
-🚀 Server is running successfully!
-
-📍 Environment: ${process.env.NODE_ENV || 'development'}
-🌐 Server URL: http://localhost:${PORT}
-💾 Database: MySQL (${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || 3306})
-🔒 CORS Origin: ${process.env.FRONTEND_URL || 'http://localhost:3000'}
-
-📚 API Endpoints:
-   GET  /health                    - Health check
-   POST /api/auth/register         - Admin registration
-   POST /api/auth/login            - Admin login
-   POST /api/auth/logout           - Admin logout
-   GET  /api/auth/profile          - Get admin profile
-   POST /api/guest-users           - Create guest user
-   GET  /api/guest-users           - Get guest users
-   PUT  /api/guest-users/:id       - Update guest user
-   DELETE /api/guest-users/:id     - Delete guest user
-   PATCH /api/guest-users/:id/toggle-status - Toggle user status
-
-🔧 Next steps:
-   1. Copy backend/.env.example to backend/.env
-   2. Configure your MySQL database settings
-   3. Run: npm run migrate (to create database tables)
-   4. Start frontend development server
+Server is running successfully!
       `);
     });
   } catch (error) {
